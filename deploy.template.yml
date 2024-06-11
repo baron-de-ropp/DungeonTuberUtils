@@ -1,0 +1,16 @@
+name: flask-app
+services:
+- build_command: ""
+  environment_slug: python
+  environment_variables:
+    - key: API_KEY
+      value: <YOUR_API_KEY>
+  git:
+    branch: main
+    repo_clone_url: https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO>.git
+  http_port: 8080
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  name: flask-app
+  run_command: python app.py
+  source_dir: /
