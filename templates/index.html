@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Youtube Sponsorship Rate Calculator</title>
+    <style>
+      .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(0, 0, 0, 0.3);
+        border-radius: 50%;
+        border-top-color: #000;
+        animation: spin 1s ease-in-out infinite;
+        margin-left: 10px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .disabled {
+        background-color: #e0e0e0;
+        pointer-events: none;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      table, th, td {
+        border: 1px solid black;
+      }
+
+      th, td {
+        padding: 8px;
+        text-align: left;
+      }
+
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1>YouTube Sponsorship Rate Calculator</h1>
+      <form id="rate-form">
+        <label for="channel_id">Channel ID:</label>
+        <input type="text" id="channel_id" name="channel_id" required>
+        <button type="submit" id="calculate-button">Calculate</button>
+        <div id="spinner" class="spinner" style="display: none;"></div>
+      </form>
+    </div>
+    <div id="results"></div>
+    <script>
+      document.getElementById('rate-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var formData = new FormData(event.target);
+        
+        // Disable input and button
+        document.getElementById('channel_id').classList.add('disabled');
+        document.getElementById('channel_id').disabled = true;
+        document.getElementById('calculate-button').classList.add('disabled');
+        document.getElementById('calculate-button').disabled = true;
+
+        // Show spinner
+        document.getElementById('spinner').style.display = 'inline-block';
+        
+        fetch('/fetch_data', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Display the results
+          var resultsDiv = document.getElementById('results');
+          var videos = data.videos;
+          var sponsorshipRates = data.sponsorship_rates;
+
+          var tableHtml = `
+            <h2>Sponsorship Rates</h2>
+            <ul>
+              ${Object.keys(sponsorshipRates).map(cpm => `<li>${cpm}: $${sponsorshipRates[cpm].toFixed(2)}</li>`).join('')}
+            </ul>
+            <h2>Recent Videos</h2>
+            <table>
+              <tr>
+                <th>Video Title</th>
+                <th>View Count</th>
+                <th>No. Comments</th>
+                <th>No. Likes</th>
+                <th>Engagement Percentage</th>
+              </tr>
+          `;
+
+          videos.forEach(video => {
+            var title = video.snippet.title;
+            var viewCount = video.statistics.viewCount;
+            var commentCount = video.statistics.commentCount;
+            var likeCount = video.statistics.likeCount;
+            var engagementPercentage = ((parseInt(commentCount) + parseInt(likeCount)) / parseInt(viewCount) * 100).toFixed(2);
+
+            tableHtml += `
+              <tr>
+                <td>${title}</td>
+                <td>${viewCount}</td>
+                <td>${commentCount}</td>
+                <td>${likeCount}</td>
+                <td>${engagementPercentage}%</td>
+              </tr>
+            `;
+          });
+
+          tableHtml += `</table>`;
+          resultsDiv.innerHTML = tableHtml;
+
+          // Enable input and button
+          document.getElementById('channel_id').classList.remove('disabled');
+          document.getElementById('channel_id').disabled = false;
+          document.getElementById('calculate-button').classList.remove('disabled');
+          document.getElementById('calculate-button').disabled = false;
+
+          // Hide spinner
+          document.getElementById('spinner').style.display = 'none';
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          // Enable input and button in case of error
+          document.getElementById('channel_id').classList.remove('disabled');
+          document.getElementById('channel_id').disabled = false;
+          document.getElementById('calculate-button').classList.remove('disabled');
+          document.getElementById('calculate-button').disabled = false;
+
+          // Hide spinner
+          document.getElementById('spinner').style.display = 'none';
+        });
+      });
+    </script>
+  </body>
+</html>
