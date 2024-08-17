@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>YouTube Channel Data</h1>
+    <form method="POST">
+        <label for="channel_id">Enter YouTube Channel ID:</label>
+        <input type="text" id="channel_id" name="channel_id" required>
+        <button type="submit">Get Data</button>
+    </form>
+
+    {% if channel_data and videos_data %}
+        <h2>Channel Details</h2>
+        <p>Name: {{ channel_data.items[0].snippet.title }}</p>
+        <p>Subscribers: {{ channel_data.items[0].statistics.subscriberCount }}</p>
+        <p>Views: {{ channel_data.items[0].statistics.viewCount }}</p>
+
+        <h2>Recent Videos</h2>
+        <ul>
+            {% for video in videos_data.items %}
+                <li>{{ video.snippet.title }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}
